@@ -56,7 +56,3 @@ Available formats are dependent on whatever javax.imageio.ImageIO provides on yo
       (ByteArrayInputStream. (.toByteArray stream)))))
   ([#^BufferedImage image]
       (image-stream image "JPG")))
-
-
-
-
