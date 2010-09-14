@@ -1,4 +1,4 @@
-(ns nl.zeekat.imajine
+(ns nl.zeekat.imajine.core
   (:use clojure.contrib.math))
 
 (import [javax.imageio ImageIO ImageWriter ImageWriteParam IIOImage]
