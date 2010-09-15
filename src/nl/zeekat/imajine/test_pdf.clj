@@ -1,6 +1,6 @@
 (ns nl.zeekat.imajine.test-pdf
   (:use nl.zeekat.imajine.core
-        nl.zeekat.imajine.pdf
+        nl.zeekat.imajine.pdf-magick
         clojure.java.io))
 
 (defn convert-pdf-to-jpg
