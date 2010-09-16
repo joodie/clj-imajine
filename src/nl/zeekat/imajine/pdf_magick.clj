@@ -8,9 +8,12 @@
            java.io.InputStream
            java.io.FileInputStream))
 
+(def #^{:doc "path where `convert' and `identify' are located"}
+  *image-magick-path* "")
+
 (defn run
   [& args]
-  (let [rv (apply sh :return-map true args)]
+  (let [rv (apply sh :return-map true (str *image-magick-path* (first args)) (rest args))]
     (if (= (:exit rv) 0)
       (:out rv)
       (throw (Exception. (str "Error running " args " exit value:" (:exit rv) "stderr: " (:err rv)))))))
