@@ -1,2 +1,2 @@
-clj-imagine - convert and scale images
+clj-imajine - convert and scale images
 
