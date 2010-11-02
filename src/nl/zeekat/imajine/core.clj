@@ -25,20 +25,34 @@ width and heights are integer, scale is a double"
   (let [scale (double (if (> (/ bbox-height orig-h) (/ bbox-width orig-w))
                  (/ bbox-width orig-w)
                  (/ bbox-height orig-h)))]
-    [(int (ceil (* scale orig-w))) (int (ceil (* scale orig-h))) scale]))
+    [(int (round (* scale orig-w))) (int (round (* scale orig-h))) scale]))
 
-(defn resize 
+(defn- resize*
   "Resize a BufferedImage. Returns a BufferedImage"
   [#^BufferedImage input w h]
-  (let [[width height scale] (apply bounding-box w h (image-dimensions input))
-        output (BufferedImage. width height (.getType input))]
-    (let [g2d (.createGraphics output)] 
-      (try 
-       (.setRenderingHint g2d RenderingHints/KEY_INTERPOLATION RenderingHints/VALUE_INTERPOLATION_BICUBIC)
-       (.drawRenderedImage g2d input (AffineTransform/getScaleInstance scale scale))
-       (finally 
-        (.dispose g2d))))
+  (let [output (BufferedImage. w h (.getType input))
+        g2d (.createGraphics output)]
+    (try 
+      (.setRenderingHint g2d RenderingHints/KEY_INTERPOLATION RenderingHints/VALUE_INTERPOLATION_BILINEAR)
+      (.drawImage g2d input 0 0 w h nil)
+      (finally 
+       (.dispose g2d)))
     output))
+
+(defn resize
+  "Resize a BufferedImage. Returns a BufferedImage"
+  [#^BufferedImage input w h]
+  (let [[in-w in-h] (image-dimensions input)
+        [width height] (bounding-box w h in-w in-h)
+        halve-w (/ in-w 2)
+        halve-h (/ in-h 2)]
+    (if (or (<= in-w width)
+            (<= in-h height)
+            (<= halve-w width)
+            (<= halve-h height))
+      (resize* input width height)
+      (recur (resize* input halve-w halve-h) w h))))
+
 
 (defn image-stream
   "convert the image to a byte stream. format-name defaults to \"JPG\"
@@ -46,13 +60,14 @@ Available formats are dependent on whatever javax.imageio.ImageIO provides on yo
   ([#^BufferedImage image format-name]
   (let [writer (first (iterator-seq (ImageIO/getImageWritersByFormatName format-name)))]
     (let [stream (ByteArrayOutputStream.)
-          output (MemoryCacheImageOutputStream. stream)] 
-      (doto (.getDefaultWriteParam writer)
+          output (MemoryCacheImageOutputStream. stream)
+          params (.getDefaultWriteParam writer)] 
+      (doto params
         (.setCompressionMode ImageWriteParam/MODE_EXPLICIT)
-        (.setCompressionQuality 0.9))
+        (.setCompressionQuality 0.95))
       (doto writer
         (.setOutput output)
-        (.write (IIOImage. image nil nil)))
+        (.write nil (IIOImage. image nil nil) params))
       (ByteArrayInputStream. (.toByteArray stream)))))
   ([#^BufferedImage image]
       (image-stream image "JPG")))
