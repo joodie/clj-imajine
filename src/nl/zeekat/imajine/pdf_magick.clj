@@ -40,7 +40,7 @@
 
 (defn- get-page
   [doc num]
-  [["convert" "-depth" "8" "-colorspace" "sRGB" "-antialias" (str (:pdf doc) "[" (dec num) "]") (:png doc)] (:png doc)])
+  [["convert" "-define" "pdf:use-cropbox=true" "-depth" "8" "-colorspace" "sRGB" "-antialias" (str (:pdf doc) "[" (dec num) "]") (:png doc)] (:png doc)])
 
 (defn pages
   "returns a lazy seq of all pages of a pdf document"
