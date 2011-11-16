@@ -40,9 +40,22 @@ width and heights are integer, scale is a double"
     output))
 
 (defn resize
-  "Resize a BufferedImage. Returns a BufferedImage"
-  [#^BufferedImage input w h]
+  "Resize a BufferedImage to exactly w and h. Returns a BufferedImage"
+  [#^BufferedImage input width height]
   (let [[in-w in-h] (image-dimensions input)
+        halve-w (/ in-w 2)
+        halve-h (/ in-h 2)]
+    (if (or (<= in-w width)
+            (<= in-h height)
+            (<= halve-w width)
+            (<= halve-h height))
+      (resize* input width height)
+      (recur (resize* input halve-w halve-h) width height))))
+
+(defn resize-to-bounding-box
+  "Resize a BufferedImage to fit in the given bounding box"
+  [^BufferedImage input w h]
+    (let [[in-w in-h] (image-dimensions input)
         [width height] (bounding-box w h in-w in-h)
         halve-w (/ in-w 2)
         halve-h (/ in-h 2)]
@@ -54,8 +67,9 @@ width and heights are integer, scale is a double"
       (recur (resize* input halve-w halve-h) w h))))
 
 
-(defn image-stream
-  "convert the image to a byte stream. format-name defaults to \"JPG\"
+
+(defn image-bytes
+  "convert the image to a byte array. format-name defaults to \"JPG\"
 Available formats are dependent on whatever javax.imageio.ImageIO provides on your system"
   ([#^BufferedImage image format-name]
   (let [writer (first (iterator-seq (ImageIO/getImageWritersByFormatName format-name)))]
@@ -68,6 +82,16 @@ Available formats are dependent on whatever javax.imageio.ImageIO provides on yo
       (doto writer
         (.setOutput output)
         (.write nil (IIOImage. image nil nil) params))
-      (ByteArrayInputStream. (.toByteArray stream)))))
+      (.toByteArray stream))))
   ([#^BufferedImage image]
-      (image-stream image "JPG")))
+      (image-bytes image "JPG")))
+
+(defn image-stream
+  [^BufferedImage image format-name]
+  (ByteArrayInputStream. (image-bytes image format-name)))
+
+(defn crop
+  "Return the subimage given the specified rectangle"
+  [^BufferedImage img x y w h]
+  (.getSubimage img x y w h))
+
