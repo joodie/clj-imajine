@@ -1,7 +1,7 @@
 (ns nl.zeekat.imajine.pdf-magick
   (:use nl.zeekat.imajine.core
-        clojure.contrib.shell-out
-        [clojure.contrib.string :only [split trim]]
+        clojure.java.shell
+        [clojure.string :only [split trim]]
         clojure.java.io)
   (:import java.util.UUID
            java.io.File

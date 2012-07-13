@@ -1,6 +1,5 @@
 (ns nl.zeekat.imajine.core
-  (:use clojure.contrib.math))
-
+  (:use [clojure.math.numeric-tower :only [round]]))
 (import [javax.imageio ImageIO ImageWriter ImageWriteParam IIOImage]
         [javax.imageio.stream MemoryCacheImageOutputStream]
         [java.awt.image BufferedImage]
