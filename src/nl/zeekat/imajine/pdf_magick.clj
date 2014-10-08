@@ -8,12 +8,12 @@
            java.io.InputStream
            java.io.FileInputStream))
 
-(def #^{:doc "path where `convert' and `identify' are located"}
+(def #^{:doc "path where `convert' and `identify' are located" :dynamic true}
   *image-magick-path* "")
 
 (defn run
   [& args]
-  (let [rv (apply sh :return-map true (str *image-magick-path* (first args)) (rest args))]
+  (let [rv (apply sh (str *image-magick-path* (first args)) (rest args))]
     (if (= (:exit rv) 0)
       (:out rv)
       (throw (Exception. (str "Error running " args " exit value:" (:exit rv) "stderr: " (:err rv)))))))
@@ -24,7 +24,7 @@
   `(let [file# ~file
          tmp-pdf# (File/createTempFile "pdf-magick" ".pdf")
          tmp-png# (File/createTempFile "pdf-magick" ".png")]
-     
+
      (try
        (with-open [stream# (if (instance? InputStream file#)
                              file#
@@ -32,11 +32,12 @@
          (copy stream# tmp-pdf#)
          (let [~name {:pdf (.getAbsolutePath tmp-pdf#)
                       :png (.getAbsolutePath tmp-png#)
-                      :pages (Integer. (last (split #" +" (trim (run "identify" "-density" "2" "-format" "%p " (.getAbsolutePath tmp-pdf#))))))}]
+                      :pages (inc (Integer. (last (split (trim (run "identify" "-density" "2" "-format" "%p " (.getAbsolutePath tmp-pdf#)))
+                                                         #" +"))))}]
            ~@body))
        (finally
-        (.delete tmp-pdf#)
-        (.delete tmp-png#)))))
+         (.delete tmp-pdf#)
+         (.delete tmp-png#)))))
 
 (defn- get-page
   [doc num]
@@ -57,5 +58,3 @@
   [[cmd file]]
   (apply run cmd)
   (read-image (as-file file)))
-
-
