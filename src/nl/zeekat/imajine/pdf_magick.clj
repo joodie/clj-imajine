@@ -23,7 +23,7 @@
   [name file & body]
   `(let [file# ~file
          tmp-pdf# (File/createTempFile "pdf-magick" ".pdf")
-         tmp-png# (File/createTempFile "pdf-magick" ".png")]
+         tmp-jpg# (File/createTempFile "pdf-magick" ".jpg")]
 
      (try
        (with-open [stream# (if (instance? InputStream file#)
@@ -31,17 +31,17 @@
                              (FileInputStream. file#))]
          (copy stream# tmp-pdf#)
          (let [~name {:pdf (.getAbsolutePath tmp-pdf#)
-                      :png (.getAbsolutePath tmp-png#)
+                      :jpg (.getAbsolutePath tmp-jpg#)
                       :pages (inc (Integer. (last (split (trim (run "identify" "-density" "2" "-format" "%p " (.getAbsolutePath tmp-pdf#)))
                                                          #" +"))))}]
            ~@body))
        (finally
          (.delete tmp-pdf#)
-         (.delete tmp-png#)))))
+         (.delete tmp-jpg#)))))
 
 (defn- get-page
   [doc num]
-  [["convert" "-define" "pdf:use-cropbox=true" "-depth" "8" "-colorspace" "sRGB" "-antialias" (str (:pdf doc) "[" (dec num) "]") (:png doc)] (:png doc)])
+  [["convert" "-define" "pdf:use-cropbox=true" "-depth" "8" "-colorspace" "sRGB" "-antialias" (str (:pdf doc) "[" (dec num) "]") (:jpg doc)] (:jpg doc)])
 
 (defn pages
   "returns a lazy seq of all pages of a pdf document"
